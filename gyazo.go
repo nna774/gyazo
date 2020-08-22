@@ -26,11 +26,15 @@ var (
 	UploadPath = "/api/upload"
 	// ListPath is Gyazo list API Path
 	ListPath = "/api/images"
+	// DeletePathPrefix is Gyazo delete API Path Prefix
+	DeletePathPrefix = ListPath + "/"
 )
 
 func userEndpoint() string   { return APIEndpoint + UserPath }
 func uploadEndpoint() string { return UploadEndpoint + UploadPath }
 func listEndpoint() string   { return APIEndpoint + ListPath }
+
+func deleteEndpoint(imageID string) string { return APIEndpoint + DeletePathPrefix + imageID }
 
 // Uploader is interface of uploader
 type Uploader interface {
@@ -254,4 +258,39 @@ func (c *Oauth2Client) List(page, perPage uint) (ListResponse, error) {
 		UserType:    ut,
 		Images:      list,
 	}, err
+}
+
+// DeleteResponse is response of delete api
+type DeleteResponse struct {
+	ImageID string `json:"image_id"`
+	Type    string `json:"type"`
+}
+
+// Delete deletes given imageID image
+func (c *Oauth2Client) Delete(imageID string) (dr DeleteResponse, err error) {
+	req, err := http.NewRequest(http.MethodDelete, deleteEndpoint(imageID), nil)
+	if err != nil {
+		return
+	}
+	resp, err := c.Client().Do(req)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return
+	}
+	tempDr := struct {
+		DeleteResponse
+		Message string `json:"message"`
+	}{}
+	err = json.Unmarshal(data, &tempDr)
+	if tempDr.Message != "" {
+		err = errors.New(tempDr.Message)
+		return
+	}
+	dr.ImageID = tempDr.ImageID
+	dr.Type = tempDr.Type
+	return
 }
