@@ -15,11 +15,22 @@ import (
 	"golang.org/x/oauth2"
 )
 
-const (
-	userEndpoint   = "https://api.gyazo.com/api/users/me"
-	uploadEndpoint = "https://upload.gyazo.com/api/upload"
-	listEndpoint   = "https://api.gyazo.com/api/images"
+var (
+	// APIEndpoint is Gyazo API Endpoint
+	APIEndpoint = "https://api.gyazo.com"
+	// UploadEndpoint is Gyazo Upload Endpoint
+	UploadEndpoint = "https://upload.gyazo.com/"
+	// UserPath is Gyazo user API Path
+	UserPath = "/api/users/me"
+	// UploadPath is Gyazo Upload API Path
+	UploadPath = "/api/upload"
+	// ListPath is Gyazo list API Path
+	ListPath = "/api/images"
 )
+
+func userEndpoint() string   { return APIEndpoint + UserPath }
+func uploadEndpoint() string { return UploadEndpoint + UploadPath }
+func listEndpoint() string   { return APIEndpoint + ListPath }
 
 // Uploader is interface of uploader
 type Uploader interface {
@@ -93,7 +104,7 @@ type User struct {
 
 // GetCallerIdentity get caller identity
 func (c *Oauth2Client) GetCallerIdentity() (User, error) {
-	resp, err := c.Client().Get(userEndpoint)
+	resp, err := c.Client().Get(userEndpoint())
 	if err != nil {
 		return User{}, nil
 	}
@@ -183,7 +194,7 @@ func (c *Oauth2Client) Upload(image io.Reader, metadata *UploadMetadata) (resp U
 	if err != nil {
 		return
 	}
-	res, err := c.Client().Post(uploadEndpoint, mw.FormDataContentType(), buf)
+	res, err := c.Client().Post(uploadEndpoint(), mw.FormDataContentType(), buf)
 	if err != nil {
 		return
 	}
@@ -213,7 +224,7 @@ func (c *Oauth2Client) List(page, perPage uint) (ListResponse, error) {
 	if perPage == 0 || perPage > 100 {
 		return ListResponse{}, errors.New("perPage must be 1 to 100")
 	}
-	req, err := http.NewRequest(http.MethodGet, listEndpoint, nil)
+	req, err := http.NewRequest(http.MethodGet, listEndpoint(), nil)
 	if err != nil {
 		return ListResponse{}, err
 	}
@@ -227,7 +238,6 @@ func (c *Oauth2Client) List(page, perPage uint) (ListResponse, error) {
 	}
 	defer resp.Body.Close()
 	data, err := ioutil.ReadAll(resp.Body)
-	fmt.Printf("data: %s\n", data)
 	if err != nil {
 		return ListResponse{}, err
 	}
