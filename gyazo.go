@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -17,11 +18,12 @@ import (
 const (
 	userEndpoint   = "https://api.gyazo.com/api/users/me"
 	uploadEndpoint = "https://upload.gyazo.com/api/upload"
+	listEndpoint   = "https://api.gyazo.com/api/images"
 )
 
 // Uploader is interface of uploader
 type Uploader interface {
-	Upload(r io.Reader, metadata *Metadata) (UploadResponse, error)
+	Upload(r io.Reader, metadata *UploadMetadata) (UploadResponse, error)
 }
 
 // HTTPAuthorizeConf is Oauth2 auth config
@@ -30,7 +32,7 @@ type HTTPAuthorizeConf struct {
 	Port int
 }
 
-// AuthorizeByHTTP is 
+// AuthorizeByHTTP is
 func AuthorizeByHTTP(conf *oauth2.Config, hconf *HTTPAuthorizeConf) (*oauth2.Token, error) {
 	if hconf == nil {
 		hconf = &HTTPAuthorizeConf{Path: "/", Port: 3000}
@@ -107,8 +109,8 @@ func (c *Oauth2Client) GetCallerIdentity() (User, error) {
 	return user.User, err
 }
 
-// Metadata is Gyazo image metadata
-type Metadata struct {
+// UploadMetadata is Gyazo image metadata
+type UploadMetadata struct {
 	IsPublic     bool
 	CreatedAt    uint32
 	RefererURI   string
@@ -117,17 +119,43 @@ type Metadata struct {
 	CollectionID string
 }
 
-// UploadResponse is Gyazo upload response
-type UploadResponse struct {
+// OCR is ocr result
+type OCR struct {
+	Locale      string `json:"locale,omitempty"`
+	Description string `json:"description,omitempty"`
+}
+
+// ImageMetadata is
+type ImageMetadata struct {
+	App   string `json:"app,omitmpty"`
+	Title string `json:"title,omitempty"`
+	URI   string `json:"url,omitempty"`
+	Desc  string `json:"desc,omitempty"`
+}
+
+type baseImage struct {
 	ImageID      string `json:"image_id"`
 	PermalinkURI string `json:"permalink_url"`
 	ThumbURI     string `json:"thumb_url"`
 	URI          string `json:"url"`
 	Type         string `json:"type"`
+	CreatedAt    string `json:"created_at,omitempty"`
+}
+
+// Image is image
+type Image struct {
+	baseImage
+	OCR      OCR           `json:"ocr,omitempty"`
+	Metadata ImageMetadata `json:"metadata,omitempty"`
+}
+
+// UploadResponse is Gyazo upload response
+type UploadResponse struct {
+	baseImage
 }
 
 // Upload uploads to Gyazo
-func (c *Oauth2Client) Upload(image io.Reader, metadata *Metadata) (resp UploadResponse, err error) {
+func (c *Oauth2Client) Upload(image io.Reader, metadata *UploadMetadata) (resp UploadResponse, err error) {
 	buf := &bytes.Buffer{}
 	mw := multipart.NewWriter(buf)
 	w, err := mw.CreateFormFile("imagedata", "image")
@@ -165,4 +193,54 @@ func (c *Oauth2Client) Upload(image io.Reader, metadata *Metadata) (resp UploadR
 	}
 	err = json.Unmarshal(data, &resp)
 	return
+}
+
+// ListResponse is response of list api
+type ListResponse struct {
+	TotalCount  int     `json:"total_count,omitempty"`
+	CurrentPage int     `json:"current_page,omitempty"`
+	PerPage     int     `json:"per_page,omitempty"`
+	UserType    string  `json:"user_type,omitempty"`
+	Images      []Image `json:"images,omitempty"`
+}
+
+// List gets list of users image
+func (c *Oauth2Client) List(page, perPage uint) (ListResponse, error) {
+	if page == 0 {
+		return ListResponse{}, errors.New("page must be lager than 0")
+	}
+	if perPage == 0 || perPage > 100 {
+		return ListResponse{}, errors.New("perPage must be 1 to 100")
+	}
+	req, err := http.NewRequest(http.MethodGet, listEndpoint, nil)
+	if err != nil {
+		return ListResponse{}, err
+	}
+	params := req.URL.Query()
+	params.Add("page", strconv.Itoa(int(page)))
+	params.Add("per_page", strconv.Itoa(int(perPage)))
+	req.URL.RawQuery = params.Encode()
+	resp, err := c.Client().Do(req)
+	if err != nil {
+		return ListResponse{}, err
+	}
+	defer resp.Body.Close()
+	data, err := ioutil.ReadAll(resp.Body)
+	fmt.Printf("data: %s\n", data)
+	if err != nil {
+		return ListResponse{}, err
+	}
+	tc, _ := strconv.Atoi(resp.Header.Get("X-Total-Count"))
+	cp, _ := strconv.Atoi(resp.Header.Get("X-Current-Page"))
+	pp, _ := strconv.Atoi(resp.Header.Get("X-Per-Page"))
+	ut := resp.Header.Get("X-User-Type")
+	var list []Image
+	err = json.Unmarshal(data, &list)
+	return ListResponse{
+		TotalCount:  tc,
+		CurrentPage: cp,
+		PerPage:     pp,
+		UserType:    ut,
+		Images:      list,
+	}, err
 }
