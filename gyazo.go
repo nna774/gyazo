@@ -133,7 +133,8 @@ type ImageMetadata struct {
 	Desc  string `json:"desc,omitempty"`
 }
 
-type baseImage struct {
+// BaseImage is fieldset of image
+type BaseImage struct {
 	ImageID      string `json:"image_id"`
 	PermalinkURI string `json:"permalink_url"`
 	ThumbURI     string `json:"thumb_url"`
@@ -144,14 +145,14 @@ type baseImage struct {
 
 // Image is image
 type Image struct {
-	baseImage
+	BaseImage
 	OCR      OCR           `json:"ocr,omitempty"`
 	Metadata ImageMetadata `json:"metadata,omitempty"`
 }
 
 // UploadResponse is Gyazo upload response
 type UploadResponse struct {
-	baseImage
+	BaseImage
 }
 
 // Upload uploads to Gyazo
