@@ -118,9 +118,13 @@ func (c *Oauth2Client) GetCallerIdentity() (User, error) {
 		return User{}, nil
 	}
 	user := struct {
-		User User `json:"user"`
+		User    User   `json:"user"`
+		Message string `json:"message"`
 	}{}
 	err = json.Unmarshal(data, &user)
+	if err == nil && user.Message != "" {
+		err = errors.New(user.Message)
+	}
 	return user.User, err
 }
 
@@ -243,6 +247,16 @@ func (c *Oauth2Client) List(page, perPage uint) (ListResponse, error) {
 	defer resp.Body.Close()
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
+		return ListResponse{}, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		msg := struct {
+			Message string `json:"message"`
+		}{}
+		err = json.Unmarshal(data, &msg)
+		if err == nil {
+			err = errors.New(msg.Message)
+		}
 		return ListResponse{}, err
 	}
 	tc, _ := strconv.Atoi(resp.Header.Get("X-Total-Count"))
