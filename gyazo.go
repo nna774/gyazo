@@ -313,3 +313,7 @@ func (c *Oauth2Client) Delete(imageID string) (dr DeleteResponse, err error) {
 	dr.Type = tempDr.Type
 	return
 }
+
+// make sure Oauth2Client implements Uploader interface
+// https://golang.org/doc/effective_go.html#blank_implements
+var _ Uploader = (*Oauth2Client)(nil)
