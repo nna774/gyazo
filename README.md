@@ -24,13 +24,13 @@ if err != nil {
 client := gyazo.NewOauth2Client(accessToken)
 result, err := client.Upload(imageReader, nil)
 fmt.Printf("image_id: %s\npermalink: %s\nthumbnail: %s\nurl: %s\ntype: %s\ncreated_at %s",
-		result.ImageID, // 0123456789abcdef0123456789abcdef
-		result.PermalinkURI, // https://gyazo.com/0123456789abcdef0123456789abcdef
-		result.ThumbURI, // https://thumb.gyazo.com/thumb/200/...
-		result.URI, // https://i.gyazo.com/0123456789abcdef0123456789abcdef.png
-		result.Type, // png
-		result.CreatedAt, // 2038-01-19T03:14:07+0000
-	)
+	result.ImageID, // 0123456789abcdef0123456789abcdef
+	result.PermalinkURI, // https://gyazo.com/0123456789abcdef0123456789abcdef
+	result.ThumbURI, // https://thumb.gyazo.com/thumb/200/...
+	result.URI, // https://i.gyazo.com/0123456789abcdef0123456789abcdef.png
+	result.Type, // png
+	result.CreatedAt, // 2038-01-19T03:14:07+0000
+)
 ```
 
 ### with device id
