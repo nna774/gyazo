@@ -19,7 +19,7 @@ var (
 	// APIEndpoint is Gyazo API Endpoint
 	APIEndpoint = "https://api.gyazo.com"
 	// UploadEndpoint is Gyazo Upload Endpoint
-	UploadEndpoint = "https://upload.gyazo.com/"
+	UploadEndpoint = "https://upload.gyazo.com"
 	// UserPath is Gyazo user API Path
 	UserPath = "/api/users/me"
 	// UploadPath is Gyazo Upload API Path
