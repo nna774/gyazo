@@ -28,11 +28,14 @@ var (
 	ListPath = "/api/images"
 	// DeletePathPrefix is Gyazo delete API Path Prefix
 	DeletePathPrefix = ListPath + "/"
+	// DIDUploadPath is Gyazo upload with device id Path
+	DIDUploadPath = "/upload.cgi"
 )
 
-func userEndpoint() string   { return APIEndpoint + UserPath }
-func uploadEndpoint() string { return UploadEndpoint + UploadPath }
-func listEndpoint() string   { return APIEndpoint + ListPath }
+func userEndpoint() string      { return APIEndpoint + UserPath }
+func uploadEndpoint() string    { return UploadEndpoint + UploadPath }
+func listEndpoint() string      { return APIEndpoint + ListPath }
+func didUploadEndpoint() string { return UploadEndpoint + DIDUploadPath }
 
 func deleteEndpoint(imageID string) string { return APIEndpoint + DeletePathPrefix + imageID }
 
@@ -154,11 +157,11 @@ type ImageMetadata struct {
 
 // BaseImage is fieldset of image
 type BaseImage struct {
-	ImageID      string `json:"image_id"`
-	PermalinkURI string `json:"permalink_url"`
-	ThumbURI     string `json:"thumb_url"`
-	URI          string `json:"url"`
-	Type         string `json:"type"`
+	ImageID      string `json:"image_id,omitempty"`
+	PermalinkURI string `json:"permalink_url,omitempty"`
+	ThumbURI     string `json:"thumb_url,omitempty"`
+	URI          string `json:"url,omitempty"`
+	Type         string `json:"type,omitempty"`
 	CreatedAt    string `json:"created_at,omitempty"`
 }
 
@@ -172,6 +175,7 @@ type Image struct {
 // UploadResponse is Gyazo upload response
 type UploadResponse struct {
 	BaseImage
+	DeviceID string `json:"device_id,omitempty"`
 }
 
 func createRequestBody(image io.Reader, metadata *UploadMetadata) (contentType string, out io.Reader, err error) {
