@@ -174,8 +174,7 @@ type UploadResponse struct {
 	BaseImage
 }
 
-// Upload uploads to Gyazo
-func (c *Oauth2Client) Upload(image io.Reader, metadata *UploadMetadata) (resp UploadResponse, err error) {
+func createRequestBody(image io.Reader, metadata *UploadMetadata) (contentType string, out io.Reader, err error) {
 	buf := &bytes.Buffer{}
 	mw := multipart.NewWriter(buf)
 	w, err := mw.CreateFormFile("imagedata", "image")
@@ -202,7 +201,13 @@ func (c *Oauth2Client) Upload(image io.Reader, metadata *UploadMetadata) (resp U
 	if err != nil {
 		return
 	}
-	res, err := c.Client().Post(uploadEndpoint(), mw.FormDataContentType(), buf)
+	return mw.FormDataContentType(), buf, nil
+}
+
+// Upload uploads to Gyazo
+func (c *Oauth2Client) Upload(image io.Reader, metadata *UploadMetadata) (resp UploadResponse, err error) {
+	ct, body, err := createRequestBody(image, metadata)
+	res, err := c.Client().Post(uploadEndpoint(), ct, body)
 	if err != nil {
 		return
 	}
