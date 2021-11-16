@@ -18,7 +18,7 @@ func NewDIDUploader(did string) *DeviceIDUploader {
 }
 
 // Upload uploads to Gyazo
-func (u *DeviceIDUploader) Upload(image io.Reader, metadata *UploadMetadata) (resp UploadResponse, err error) {
+func (u *DeviceIDUploader) Upload(image io.Reader, metadata *UploadMetadata) (resp *UploadResponse, err error) {
 	ct, body, err := createRequestBody(image, metadata)
 	res, err := http.Post(didUploadEndpoint(), ct, body)
 	if err != nil {

@@ -41,7 +41,7 @@ func deleteEndpoint(imageID string) string { return APIEndpoint + DeletePathPref
 
 // Uploader is interface of uploader
 type Uploader interface {
-	Upload(r io.Reader, metadata *UploadMetadata) (UploadResponse, error)
+	Upload(r io.Reader, metadata *UploadMetadata) (*UploadResponse, error)
 }
 
 // HTTPAuthorizeConf is Oauth2 auth config
@@ -209,7 +209,7 @@ func createRequestBody(image io.Reader, metadata *UploadMetadata) (contentType s
 }
 
 // Upload uploads to Gyazo
-func (c *Oauth2Client) Upload(image io.Reader, metadata *UploadMetadata) (resp UploadResponse, err error) {
+func (c *Oauth2Client) Upload(image io.Reader, metadata *UploadMetadata) (resp *UploadResponse, err error) {
 	ct, body, err := createRequestBody(image, metadata)
 	res, err := c.Client().Post(uploadEndpoint(), ct, body)
 	if err != nil {
@@ -234,16 +234,16 @@ type ListResponse struct {
 }
 
 // List gets list of users image
-func (c *Oauth2Client) List(page, perPage uint) (ListResponse, error) {
+func (c *Oauth2Client) List(page, perPage uint) (*ListResponse, error) {
 	if page == 0 {
-		return ListResponse{}, errors.New("page must be lager than 0")
+		return nil, errors.New("page must be lager than 0")
 	}
 	if perPage == 0 || perPage > 100 {
-		return ListResponse{}, errors.New("perPage must be 1 to 100")
+		return nil, errors.New("perPage must be 1 to 100")
 	}
 	req, err := http.NewRequest(http.MethodGet, listEndpoint(), nil)
 	if err != nil {
-		return ListResponse{}, err
+		return nil, err
 	}
 	params := req.URL.Query()
 	params.Add("page", strconv.Itoa(int(page)))
@@ -251,12 +251,12 @@ func (c *Oauth2Client) List(page, perPage uint) (ListResponse, error) {
 	req.URL.RawQuery = params.Encode()
 	resp, err := c.Client().Do(req)
 	if err != nil {
-		return ListResponse{}, err
+		return nil, err
 	}
 	defer resp.Body.Close()
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return ListResponse{}, err
+		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
 		msg := struct {
@@ -266,7 +266,7 @@ func (c *Oauth2Client) List(page, perPage uint) (ListResponse, error) {
 		if err == nil {
 			err = errors.New(msg.Message)
 		}
-		return ListResponse{}, err
+		return nil, err
 	}
 	tc, _ := strconv.Atoi(resp.Header.Get("X-Total-Count"))
 	cp, _ := strconv.Atoi(resp.Header.Get("X-Current-Page"))
@@ -274,7 +274,7 @@ func (c *Oauth2Client) List(page, perPage uint) (ListResponse, error) {
 	ut := resp.Header.Get("X-User-Type")
 	var list []Image
 	err = json.Unmarshal(data, &list)
-	return ListResponse{
+	return &ListResponse{
 		TotalCount:  tc,
 		CurrentPage: cp,
 		PerPage:     pp,
@@ -290,19 +290,19 @@ type DeleteResponse struct {
 }
 
 // Delete deletes given imageID image
-func (c *Oauth2Client) Delete(imageID string) (dr DeleteResponse, err error) {
-	req, err := http.NewRequest(http.MethodDelete, deleteEndpoint(imageID), nil)
+func (c *Oauth2Client) Delete(imageID string) (*DeleteResponse, error) {
+	req, err := http.NewRequest(http.MethodDelete, detailEndpoint(imageID), nil)
 	if err != nil {
-		return
+		return nil, err
 	}
 	resp, err := c.Client().Do(req)
 	if err != nil {
-		return
+		return nil, err
 	}
 	defer resp.Body.Close()
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return
+		return nil, err
 	}
 	tempDr := struct {
 		DeleteResponse
@@ -311,11 +311,9 @@ func (c *Oauth2Client) Delete(imageID string) (dr DeleteResponse, err error) {
 	err = json.Unmarshal(data, &tempDr)
 	if tempDr.Message != "" {
 		err = errors.New(tempDr.Message)
-		return
+		return nil, err
 	}
-	dr.ImageID = tempDr.ImageID
-	dr.Type = tempDr.Type
-	return
+	return &DeleteResponse{ImageID: tempDr.ImageID, Type: tempDr.Type}, err
 }
 
 // make sure Oauth2Client implements Uploader interface
