@@ -26,8 +26,8 @@ var (
 	UploadPath = "/api/upload"
 	// ListPath is Gyazo list API Path
 	ListPath = "/api/images"
-	// DeletePathPrefix is Gyazo delete API Path Prefix
-	DeletePathPrefix = ListPath + "/"
+	// DetailPathPrefix is Gyazo detail API Path Prefix
+	DetailPathPrefix = ListPath + "/"
 	// DIDUploadPath is Gyazo upload with device id Path
 	DIDUploadPath = "/upload.cgi"
 )
@@ -37,7 +37,7 @@ func uploadEndpoint() string    { return UploadEndpoint + UploadPath }
 func listEndpoint() string      { return APIEndpoint + ListPath }
 func didUploadEndpoint() string { return UploadEndpoint + DIDUploadPath }
 
-func deleteEndpoint(imageID string) string { return APIEndpoint + DeletePathPrefix + imageID }
+func detailEndpoint(imageID string) string { return APIEndpoint + DetailPathPrefix + imageID }
 
 // Uploader is interface of uploader
 type Uploader interface {
