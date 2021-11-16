@@ -316,6 +316,25 @@ func (c *Oauth2Client) Delete(imageID string) (*DeleteResponse, error) {
 	return &DeleteResponse{ImageID: tempDr.ImageID, Type: tempDr.Type}, err
 }
 
+type ImageInfoResponse struct {
+	Image
+}
+
+func (c *Oauth2Client) ImageInfo(imageID string) (*ImageInfoResponse, error) {
+	req, err := http.NewRequest(http.MethodGet, detailEndpoint(imageID), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := c.Client().Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var r ImageInfoResponse
+	err = json.NewDecoder(resp.Body).Decode(&r)
+	return &r, err
+}
+
 // make sure Oauth2Client implements Uploader interface
 // https://golang.org/doc/effective_go.html#blank_implements
 var _ Uploader = (*Oauth2Client)(nil)
