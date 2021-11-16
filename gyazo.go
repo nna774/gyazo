@@ -135,7 +135,7 @@ func (c *Oauth2Client) GetCallerIdentity() (User, error) {
 type UploadMetadata struct {
 	IsPublic     bool
 	CreatedAt    uint32
-	RefererURI   string
+	RefererURL   string
 	Title        string
 	Desc         string
 	CollectionID string
@@ -151,16 +151,16 @@ type OCR struct {
 type ImageMetadata struct {
 	App   string `json:"app,omitempty"`
 	Title string `json:"title,omitempty"`
-	URI   string `json:"url,omitempty"`
+	URL   string `json:"url,omitempty"`
 	Desc  string `json:"desc,omitempty"`
 }
 
 // BaseImage is fieldset of image
 type BaseImage struct {
 	ImageID      string `json:"image_id,omitempty"`
-	PermalinkURI string `json:"permalink_url,omitempty"`
-	ThumbURI     string `json:"thumb_url,omitempty"`
-	URI          string `json:"url,omitempty"`
+	PermalinkURL string `json:"permalink_url,omitempty"`
+	ThumbURL     string `json:"thumb_url,omitempty"`
+	URL          string `json:"url,omitempty"`
 	Type         string `json:"type,omitempty"`
 	CreatedAt    string `json:"created_at,omitempty"`
 }
@@ -192,12 +192,12 @@ func createRequestBody(image io.Reader, metadata *UploadMetadata) (contentType s
 			return
 		}
 		io.WriteString(w, strconv.FormatBool(metadata.IsPublic))
-		if metadata.RefererURI != "" {
+		if metadata.RefererURL != "" {
 			w, err = mw.CreateFormField("referer_url")
 			if err != nil {
 				return
 			}
-			io.WriteString(w, metadata.RefererURI)
+			io.WriteString(w, metadata.RefererURL)
 		}
 		// TODO: title, desc, created_at, collection_id
 	}

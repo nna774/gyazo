@@ -33,7 +33,7 @@ func (u *DeviceIDUploader) Upload(image io.Reader, metadata *UploadMetadata) (re
 		err = errors.New(string(data))
 		return
 	}
-	resp.PermalinkURI = string(data)
+	resp.PermalinkURL = string(data)
 	resp.DeviceID = res.Header.Get("X-Gyazo-ID")
 	return
 }
