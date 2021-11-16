@@ -149,7 +149,7 @@ type OCR struct {
 
 // ImageMetadata is
 type ImageMetadata struct {
-	App   string `json:"app,omitmpty"`
+	App   string `json:"app,omitempty"`
 	Title string `json:"title,omitempty"`
 	URI   string `json:"url,omitempty"`
 	Desc  string `json:"desc,omitempty"`
