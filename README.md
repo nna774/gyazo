@@ -25,9 +25,9 @@ client := gyazo.NewOauth2Client(accessToken)
 result, err := client.Upload(imageReader, nil)
 fmt.Printf("image_id: %s\npermalink: %s\nthumbnail: %s\nurl: %s\ntype: %s\ncreated_at %s",
 	result.ImageID, // 0123456789abcdef0123456789abcdef
-	result.PermalinkURI, // https://gyazo.com/0123456789abcdef0123456789abcdef
-	result.ThumbURI, // https://thumb.gyazo.com/thumb/200/...
-	result.URI, // https://i.gyazo.com/0123456789abcdef0123456789abcdef.png
+	result.PermalinkURL, // https://gyazo.com/0123456789abcdef0123456789abcdef
+	result.ThumbURL, // https://thumb.gyazo.com/thumb/200/...
+	result.URL, // https://i.gyazo.com/0123456789abcdef0123456789abcdef.png
 	result.Type, // png
 	result.CreatedAt, // 2038-01-19T03:14:07+0000
 )
@@ -43,7 +43,7 @@ result, err := uploader.Upload(imageReader, nil)
 if err != nil {
     panic(err)
 }
-fmt.Println(result.PermalinkURI) // https://gyazo.com/0123456789abcdef0123456789abcdef
+fmt.Println(result.PermalinkURL) // https://gyazo.com/0123456789abcdef0123456789abcdef
 fmt.Println(result.DeviceID) // 0123456789abcdef0123456789abcdef
 ```
 
